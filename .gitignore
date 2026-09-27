@@ -1,0 +1,19 @@
+# Public GitHub repository allowlist: only the catalog, viewer, and deploy docs.
+*
+!.gitignore
+!README.md
+!books.json
+!web/
+!web/app.js
+!web/index.html
+!web/style.css
+!.github/
+!.github/workflows/
+!.github/workflows/deploy.yml
+
+# Keep the deployment build output and local/editor artifacts out of Git.
+_site/
+.DS_Store
+.venv/
+venv/
+env/

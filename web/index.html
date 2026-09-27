@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library Catalog</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>📚 Library Catalog</h1>
+    <p id="stats"></p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab active" data-tab="search">🔍 Search</button>
+      <button class="tab" data-tab="browse">📂 Browse by Shelf</button>
+    </div>
+
+    <!-- Search Tab -->
+    <section id="search" class="tab-content active">
+      <div class="search-bar">
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search by title, author, publisher, ISBN, or shelf…"
+          autofocus
+        />
+      </div>
+      <p id="search-status" class="status"></p>
+      <div id="search-results" class="book-grid"></div>
+    </section>
+
+    <!-- Browse Tab -->
+    <section id="browse" class="tab-content">
+      <div class="location-bar">
+        <label for="location-select">Shelf:</label>
+        <select id="location-select"></select>
+        <span id="browse-count" class="status"></span>
+      </div>
+      <div id="browse-results" class="book-grid"></div>
+    </section>
+  </main>
+
+  <script src="app.js?v=2"></script>
+</body>
+</html>
