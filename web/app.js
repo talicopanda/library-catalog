@@ -1,15 +1,19 @@
 /**
  * app.js — Library Catalog static site
  *
- * Loads the catalog directly from ../books.json.
- * Serve the repository root over HTTP and open /web/.
+ * Loads books.json from the site root when deployed, or the parent directory
+ * when previewing the source files under /web/.
  */
 
 let allBooks = [];
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
-fetch("../books.json", { cache: "no-store" })
+const catalogUrl = window.location.pathname.replace(/\/+$/, "").endsWith("/web")
+  ? "../books.json"
+  : "./books.json";
+
+fetch(catalogUrl, { cache: "no-store" })
   .then((r) => {
     if (!r.ok) throw new Error("books.json could not be loaded");
     return r.json();
@@ -28,7 +32,7 @@ fetch("../books.json", { cache: "no-store" })
   })
   .catch((err) => {
     document.querySelector("main").innerHTML =
-      `<div class="empty" style="padding:60px">⚠️ ${esc(err.message)}. Start a local web server from the repository root and open /web/.</div>`;
+      `<div class="empty" style="padding:60px">⚠️ ${esc(err.message)}. Check that books.json is available from the site root.</div>`;
   });
 
 function init() {
