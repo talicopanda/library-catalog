@@ -28,6 +28,13 @@ header {
   background: rgba(255, 254, 250, 0.72);
 }
 
+.header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
 header h1 {
   margin: 0 0 8px;
   font-size: clamp(2rem, 4vw, 3rem);
@@ -35,6 +42,32 @@ header h1 {
   letter-spacing: -0.035em;
   line-height: 1.05;
 }
+
+.language-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+  margin-top: 3px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--card);
+}
+
+.language-switch button {
+  min-width: 42px;
+  padding: 7px 9px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.language-switch button + button { border-left: 1px solid var(--line); }
+.language-switch button[aria-pressed="true"] { background: var(--green); color: #fff; }
+.language-switch button:hover:not([aria-pressed="true"]) { background: #f0f1eb; color: var(--ink); }
 
 header #stats {
   color: var(--muted);
@@ -192,7 +225,10 @@ main {
 :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 
 @media (max-width: 600px) {
-  header { padding: 32px 22px 24px; }
+  header { padding: 30px 22px 24px; }
+  .header-top { gap: 14px; }
+  header h1 { font-size: clamp(1.7rem, 8vw, 2.35rem); }
+  .language-switch button { min-width: 38px; padding-inline: 7px; }
   main { width: calc(100% - 36px); margin-top: 28px; }
   .tabs { gap: 22px; }
   .book-grid { grid-template-columns: 1fr; }

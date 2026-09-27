@@ -7,6 +7,52 @@
 
 let allBooks = [];
 let searchIndex = null;
+let currentLanguage = localStorage.getItem("catalog-language") === "pt-BR" ? "pt-BR" : "en";
+
+const translations = {
+  en: {
+    pageTitle: "Library Catalog",
+    siteTitle: "Library catalog",
+    copies: "copies",
+    shelves: "shelf locations",
+    reviewCount: "need identification or review",
+    searchTab: "Search",
+    browseTab: "Browse by shelf",
+    searchPlaceholder: "Search by title, author, publisher, ISBN, or shelf…",
+    shelfLabel: "Shelf:",
+    result: "result(s)",
+    noResults: (query) => `No books found for “${query}”`,
+    book: "book(s)",
+    unknownTitle: "Title not identified",
+    unknownAuthor: "Author unknown",
+    needsReview: "Needs review",
+    isbn: "ISBN",
+    empty: "No books found.",
+  },
+  "pt-BR": {
+    pageTitle: "Catálogo da biblioteca",
+    siteTitle: "Catálogo da biblioteca",
+    copies: "exemplares",
+    shelves: "estantes",
+    reviewCount: "precisam de identificação ou revisão",
+    searchTab: "Buscar",
+    browseTab: "Ver por estante",
+    searchPlaceholder: "Busque por título, autor, editora, ISBN ou estante…",
+    shelfLabel: "Estante:",
+    result: "resultado(s)",
+    noResults: (query) => `Nenhum livro encontrado para “${query}”`,
+    book: "livro(s)",
+    unknownTitle: "Título não identificado",
+    unknownAuthor: "Autor desconhecido",
+    needsReview: "Precisa de revisão",
+    isbn: "ISBN",
+    empty: "Nenhum livro encontrado.",
+  },
+};
+
+function t(key) {
+  return translations[currentLanguage][key];
+}
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
@@ -52,10 +98,42 @@ fetch(catalogUrl, { cache: "no-store" })
   });
 
 function init() {
+  setupLanguageSwitch();
   renderStats();
   setupTabs();
   setupSearch();
   setupBrowse();
+  applyLanguage();
+}
+
+function setupLanguageSwitch() {
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentLanguage = button.dataset.language;
+      localStorage.setItem("catalog-language", currentLanguage);
+      applyLanguage();
+    });
+  });
+}
+
+function applyLanguage() {
+  document.documentElement.lang = currentLanguage === "pt-BR" ? "pt-BR" : "en";
+  document.title = t("pageTitle");
+  document.getElementById("site-title").textContent = t("siteTitle");
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    element.placeholder = t(element.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll("[data-language]").forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.language === currentLanguage));
+  });
+
+  renderStats();
+  document.getElementById("search-input").dispatchEvent(new Event("input"));
+  document.getElementById("location-select").dispatchEvent(new Event("change"));
 }
 
 // ── Stats header ───────────────────────────────────────────────────────────────
@@ -64,7 +142,9 @@ function renderStats() {
   const locations = new Set(allBooks.map((b) => b.location)).size;
   const needsReview = allBooks.filter(isNeedsReview).length;
   document.getElementById("stats").textContent =
-    `${allBooks.length} copies across ${locations} shelf locations · ${needsReview} need identification or review`;
+    `${allBooks.length.toLocaleString(currentLanguage)} ${t("copies")} · ` +
+    `${locations.toLocaleString(currentLanguage)} ${t("shelves")} · ` +
+    `${needsReview.toLocaleString(currentLanguage)} ${t("reviewCount")}`;
 }
 
 // ── Tabs ───────────────────────────────────────────────────────────────────────
@@ -101,8 +181,8 @@ function setupSearch() {
       ? exactResults
       : findFuzzyMatches(input.value.trim());
     status.textContent = results.length
-      ? `${results.length} result(s)`
-      : `No books found for "${input.value.trim()}"`;
+      ? `${results.length.toLocaleString(currentLanguage)} ${t("result")}`
+      : t("noResults")(input.value.trim());
     renderBooks(grid, results);
   });
 }
@@ -208,7 +288,7 @@ function setupBrowse() {
   function show() {
     const loc = select.value;
     const books = allBooks.filter((book) => book.location === loc);
-    count.textContent = `${books.length} book(s)`;
+    count.textContent = `${books.length.toLocaleString(currentLanguage)} ${t("book")}`;
     renderBooks(grid, books);
   }
 
@@ -220,15 +300,15 @@ function setupBrowse() {
 
 function renderBooks(container, books) {
   if (!books.length) {
-    container.innerHTML = '<p class="empty">No books found.</p>';
+    container.innerHTML = `<p class="empty">${esc(t("empty"))}</p>`;
     return;
   }
   container.innerHTML = books.map(bookCard).join("");
 }
 
 function bookCard(b) {
-  const title = cleanField(b.title) || "Title not identified";
-  const author = cleanField(b.author) || "Author unknown";
+  const title = cleanField(b.title) || t("unknownTitle");
+  const author = cleanField(b.author) || t("unknownAuthor");
   const publisher = cleanField(b.publisher);
   const year = cleanField(b.year);
   const language = cleanField(b.language);
@@ -236,7 +316,7 @@ function bookCard(b) {
     year ? `<span class="tag tag-year">${esc(year)}</span>` : "",
     language ? `<span class="tag tag-lang">${esc(language.toUpperCase())}</span>` : "",
     `<span class="tag tag-location">${esc(b.location)}</span>`,
-    isNeedsReview(b) ? '<span class="tag tag-review">Needs review</span>' : "",
+    isNeedsReview(b) ? `<span class="tag tag-review">${esc(t("needsReview"))}</span>` : "",
   ].join("");
 
   return `
@@ -245,7 +325,7 @@ function bookCard(b) {
       <p class="book-author">${esc(author)}</p>
       ${publisher ? `<p class="book-publisher">${esc(publisher)}</p>` : ""}
       <div class="book-meta">${tags}</div>
-      ${cleanField(b.isbn) ? `<p class="book-isbn">ISBN ${esc(cleanField(b.isbn))}</p>` : ""}
+      ${cleanField(b.isbn) ? `<p class="book-isbn">${esc(t("isbn"))} ${esc(cleanField(b.isbn))}</p>` : ""}
     </article>`;
 }
 
