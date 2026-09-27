@@ -31,7 +31,7 @@ const translations = {
   },
   "pt-BR": {
     pageTitle: "Catálogo da biblioteca",
-    siteTitle: "Catálogo da biblioteca",
+    siteTitle: "Catálogo",
     copies: "exemplares",
     shelves: "estantes",
     reviewCount: "precisam de identificação ou revisão",
