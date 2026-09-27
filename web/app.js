@@ -6,6 +6,7 @@
  */
 
 let allBooks = [];
+let searchIndex = null;
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 
@@ -28,6 +29,21 @@ fetch(catalogUrl, { cache: "no-store" })
         location: batch.location || "Unknown",
       }))
     );
+    if (window.Fuse) {
+      searchIndex = new window.Fuse(allBooks, {
+        keys: [
+          { name: "title", weight: 0.75 },
+          { name: "author", weight: 0.12 },
+          { name: "publisher", weight: 0.06 },
+          { name: "isbn", weight: 0.05 },
+          { name: "location", weight: 0.02 },
+        ],
+        includeScore: true,
+        ignoreLocation: true,
+        threshold: 0.25,
+        minMatchCharLength: 3,
+      });
+    }
     init();
   })
   .catch((err) => {
@@ -78,15 +94,97 @@ function setupSearch() {
       grid.innerHTML = "";
       return;
     }
-    const results = allBooks.filter((book) =>
-      [book.title, book.author, book.publisher, book.isbn, book.location]
-        .some((value) => cleanField(value).toLowerCase().includes(q))
+    const exactResults = allBooks.filter((book) =>
+      searchableFields(book).some((value) => value.toLowerCase().includes(q))
     );
+    const results = exactResults.length || !searchIndex || q.length < 4
+      ? exactResults
+      : findFuzzyMatches(input.value.trim());
     status.textContent = results.length
       ? `${results.length} result(s)`
       : `No books found for "${input.value.trim()}"`;
     renderBooks(grid, results);
   });
+}
+
+function searchableFields(book) {
+  return [book.title, book.author, book.publisher, book.isbn, book.location]
+    .map(cleanField)
+    .filter(Boolean);
+}
+
+function findFuzzyMatches(query) {
+  const normalizedQuery = normalizeSearchText(query);
+  const queryWords = normalizedQuery.split(" ").filter(Boolean);
+  const fuzzyResults = searchIndex.search(query).map(({ item }) => item);
+  const candidates = [...new Set([...fuzzyResults, ...allBooks])];
+
+  // For a single misspelled word, use a small edit-distance budget to keep
+  // fuzzy matching precise instead of returning vaguely similar titles.
+  if (queryWords.length === 1) {
+    const maxDistance = normalizedQuery.length >= 4 ? 1 : 0;
+    return candidates
+      .map((book) => ({ book, rank: singleWordMatchRank(book, normalizedQuery) }))
+      .filter(({ rank }) => rank.distance <= maxDistance)
+      .sort((a, b) => a.rank.distance - b.rank.distance || a.rank.field - b.rank.field)
+      .map(({ book }) => book);
+  }
+
+  return fuzzyResults;
+}
+
+function singleWordMatchRank(book, query) {
+  const fields = [book.title, book.author, book.publisher, book.isbn, book.location];
+  let best = { distance: Infinity, field: fields.length };
+
+  fields.forEach((value, fieldIndex) => {
+    const words = normalizeSearchText(cleanField(value)).split(" ").filter(Boolean);
+    words.forEach((word) => {
+      if (Math.abs(word.length - query.length) > 1) return;
+      const distance = editDistanceAtMostOne(query, word);
+      if (distance < best.distance || (distance === best.distance && fieldIndex < best.field)) {
+        best = { distance, field: fieldIndex };
+      }
+    });
+  });
+
+  return best;
+}
+
+function normalizeSearchText(value) {
+  return String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function editDistanceAtMostOne(a, b) {
+  if (a === b) return 0;
+  if (Math.abs(a.length - b.length) > 1) return 2;
+
+  let left = 0;
+  let right = 0;
+  let edits = 0;
+  while (left < a.length && right < b.length) {
+    if (a[left] === b[right]) {
+      left += 1;
+      right += 1;
+    } else {
+      edits += 1;
+      if (edits > 1) return 2;
+      if (a.length > b.length) left += 1;
+      else if (b.length > a.length) right += 1;
+      else {
+        left += 1;
+        right += 1;
+      }
+    }
+  }
+
+  if (left < a.length || right < b.length) edits += 1;
+  return edits;
 }
 
 // ── Browse by shelf ────────────────────────────────────────────────────────────

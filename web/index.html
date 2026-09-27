@@ -4,19 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Library Catalog</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
 
   <header>
-    <h1>📚 Library Catalog</h1>
+    <p class="eyebrow">Private collection · Public catalogue</p>
+    <h1>Library catalog</h1>
     <p id="stats"></p>
   </header>
 
   <main>
     <div class="tabs">
-      <button class="tab active" data-tab="search">🔍 Search</button>
-      <button class="tab" data-tab="browse">📂 Browse by Shelf</button>
+      <button class="tab active" data-tab="search">Search</button>
+      <button class="tab" data-tab="browse">Browse by shelf</button>
     </div>
 
     <!-- Search Tab -->
@@ -44,6 +45,7 @@
     </section>
   </main>
 
-  <script src="app.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.min.js"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
