@@ -14,4 +14,4 @@ From the repository root, run `python3 -m http.server 8000` and open <http://loc
 
 Pushing to `main` builds the site artifact from `web/`, adds `books.json` and the custom-domain marker, then deploys with GitHub Pages. The workflow and Git ignore allowlist keep the repository limited to the viewer, catalog, and deployment documentation; shelf photos, local databases/state, examples, and editor files stay out of the public repository.
 
-For `library.scopinho.com`, configure a DNS CNAME record with host `library` pointing to `talicopanda.github.io`. Then enable GitHub Pages with **GitHub Actions** as the build source and set the custom domain to `library.scopinho.com`. GitHub provisions HTTPS after DNS verification.
+GitHub Pages is configured to deploy with **GitHub Actions** and use `library.scopinho.com`. At the DNS provider, create a CNAME record with host `library` pointing to `talicopanda.github.io`. Once DNS resolves, GitHub provisions the TLS certificate; HTTPS enforcement can be enabled after the certificate is issued.
