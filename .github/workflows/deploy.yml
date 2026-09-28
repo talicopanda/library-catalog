@@ -24,7 +24,7 @@ jobs:
           mkdir -p _site
           cp -R web/. _site/
           cp books.json _site/books.json
-          printf '%s\n' 'library.scopinho.com' > _site/CNAME
+          printf '%s\n' 'biblioteca.scopinho.com' > _site/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
